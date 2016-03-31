@@ -24,7 +24,6 @@ import java.util.Collection;
 
 import com.google.common.collect.Multimap;
 
-import io.airlift.command.Command;
 import org.apache.cassandra.tools.NodeProbe;
 import org.apache.cassandra.tools.NodeTool.NodeToolCmd;
 
