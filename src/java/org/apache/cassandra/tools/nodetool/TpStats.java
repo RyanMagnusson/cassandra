@@ -20,25 +20,54 @@ package org.apache.cassandra.tools.nodetool;
 import io.airlift.command.Command;
 
 import java.util.Map;
+import java.util.Collection;
 
 import com.google.common.collect.Multimap;
 
+import io.airlift.command.Command;
 import org.apache.cassandra.tools.NodeProbe;
 import org.apache.cassandra.tools.NodeTool.NodeToolCmd;
 
 @Command(name = "tpstats", description = "Print usage statistics of thread pools")
 public class TpStats extends NodeToolCmd
 {
+    static int findMaxLength(Collection<String> names)
+    {
+        int max = 0;
+        for (String s : names)
+        {
+            if (s.length() > max)
+            {
+                max = s.length();
+            }
+        }
+        return max;
+    }
+
+    static String generateThreadPoolStatsPattern(Collection<String> names)
+    {
+        final int maxLengthOfNames = findMaxLength(names);
+        int paddingSize = 25;
+
+        // add a little white space to separate things
+        if (25 <= maxLengthOfNames)
+        {
+            paddingSize = maxLengthOfNames + 1;
+        }
+        return "%-" + paddingSize + "s%10s%10s%15s%10s%18s%n";
+    }
+
     @Override
     public void execute(NodeProbe probe)
     {
-        System.out.printf("%-25s%10s%10s%15s%10s%18s%n", "Pool Name", "Active", "Pending", "Completed", "Blocked", "All time blocked");
+        final Multimap<String, String> threadPools = probe.getThreadPools();
+        final String patternForTasksStats = generateThreadPoolStatsPattern(threadPools.keySet());
 
+        System.out.printf(patternForTasksStats, "Pool Name", "Active", "Pending", "Completed", "Blocked", "All time blocked");
 
-        Multimap<String, String> threadPools = probe.getThreadPools();
         for (Map.Entry<String, String> tpool : threadPools.entries())
         {
-            System.out.printf("%-25s%10s%10s%15s%10s%18s%n",
+            System.out.printf(patternForTasksStats,
                               tpool.getValue(),
                               probe.getThreadPoolMetric(tpool.getKey(), tpool.getValue(), "ActiveTasks"),
                               probe.getThreadPoolMetric(tpool.getKey(), tpool.getValue(), "PendingTasks"),
