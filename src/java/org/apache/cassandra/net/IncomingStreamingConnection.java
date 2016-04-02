@@ -57,7 +57,8 @@ public class IncomingStreamingConnection extends Thread implements Closeable
     {
         try
         {
-            // streaming connections are per-session and have a fixed version.  we can't do anything with a wrong-version stream connection, so drop it.
+            // streaming connections are per-session and have a fixed version.
+            // we can't do anything with a wrong-version stream connection, so drop it.
             if (version != StreamMessage.CURRENT_VERSION)
                 throw new IOException(String.format("Received stream using protocol version %d (my version %d). Terminating connection", version, StreamMessage.CURRENT_VERSION));
 
