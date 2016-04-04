@@ -22,6 +22,7 @@ import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Objects;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -56,9 +57,10 @@ public class IncomingStreamingConnection extends Thread implements Closeable
     {
         try
         {
-            // streaming connections are per-session and have a fixed version.  we can't do anything with a wrong-version stream connection, so drop it.
+            // streaming connections are per-session and have a fixed version.
+            // we can't do anything with a wrong-version stream connection, so drop it.
             if (version != StreamMessage.CURRENT_VERSION)
-                throw new IOException(String.format("Received stream using protocol version %d (my version %d). Terminating connection", version, MessagingService.current_version));
+                throw new IOException(String.format("Received stream using protocol version %d (my version %d). Terminating connection", version, StreamMessage.CURRENT_VERSION));
 
             DataInput input = new DataInputStream(socket.getInputStream());
             StreamInitMessage init = StreamInitMessage.serializer.deserialize(input, version);
@@ -75,6 +77,9 @@ public class IncomingStreamingConnection extends Thread implements Closeable
         }
         catch (IOException e)
         {
+            logger.error(String.format("IOException while reading from socket: %s; %s",
+                                       Objects.toString(socket.getRemoteSocketAddress()),
+                                       e.getMessage()));
             logger.debug("IOException reading from socket; closing", e);
             close();
         }
